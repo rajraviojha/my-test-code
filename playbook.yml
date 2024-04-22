@@ -14,4 +14,4 @@
       command: sudo systemctl start docker
 
     - name: deploy todo application
-      command: sudo docker run -itd -p 5000:5000 umahanty/flaskapp
+      command: sudo docker run -itd -p 5000:5000 jharajltp/flaskapp
