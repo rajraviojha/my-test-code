@@ -3,6 +3,18 @@ pipeline {
     
     stages {
         stage("Code Checkout") {
+	    stage("Setup") {
+            steps {
+                // Create and activate virtual environment
+                bat 'python -m venv venv'
+                bat 'venv\\Scripts\\activate'
+                
+                // Install dependencies including pytest
+                bat 'pip install -r requirements.txt'
+                bat 'pip install pytest'
+            }
+        }
+
             steps {
                 echo "Cloning the code"
                 git url: "https://github.com/umahanty/To-Do-Application-Deployment.git", branch: "main"
@@ -40,14 +52,24 @@ pipeline {
             }
         }
 
-        stage("Selenium Test") {
-            steps {
-                echo "Running Selenium tests"
-		sh 'python3 app.py'
-                sh 'python3 -m pytest'
-                }
-            }
+              //  stage("Run Application and Tests") {
+        //    parallel {
+         //       stage("Run Application") {
+           //         steps {
+           //             echo "Running the application"
+                        // Execute app.py in background
+             //           bat 'start /b python app.py'
+           //         }
+          //      }
+          //      }
+         //   }
 
-	}
-	
-}
+                stage("Run Tests") {
+                    steps {
+                        timeout(time: 15, unit: 'MINUTES') {
+                            echo "Running Selenium tests"
+                            // Run pytest
+                            bat 'pytest selenium1.py'
+                        }
+                    }
+        }
