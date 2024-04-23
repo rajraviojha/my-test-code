@@ -1,75 +1,52 @@
 pipeline {
     agent any
-    
+
     stages {
         stage("Code Checkout") {
-	    stage("Setup") {
             steps {
-                // Create and activate virtual environment
-                bat 'python -m venv venv'
-                bat 'venv\\Scripts\\activate'
-                
-                // Install dependencies including pytest
-                bat 'pip install -r requirements.txt'
-                bat 'pip install pytest'
+                echo "Cloning the code"
+                git url: "https://github.com/rajraviojha/rajtest.git", branch: "main"
             }
         }
 
-            steps {
-                echo "Cloning the code"
-                git url: "https://github.com/umahanty/To-Do-Application-Deployment.git", branch: "main"
-            }
-        }
-        
         stage("Build Docker Image") {
             steps {
                 echo "Building the image"
                 catchError(buildResult: 'UNSTABLE') {
-                    sh "docker build -t flask-app ."
+                    sh "docker build -t testflaskappnew ."
                 }
             }
         }
-        
+
         stage("Push To Docker Hub") {
             steps {
                 echo "pushing to docker hub"
                 withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
-                sh "docker tag flask-app ${env.dockerHubUser}/flask-app:latest"
-                sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
-                sh "docker push ${env.dockerHubUser}/flask-app:latest"
-                    }
+                    sh "docker tag testflaskappnew ${env.dockerHubUser}/testflaskappnew"
+                    sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
+                    sh "docker push ${env.dockerHubUser}/testflaskappnew"
                 }
             }
-        
+        }
+
         stage("Deploy") {
             steps {
                 echo "Deploying to container"
                 catchError(buildResult: 'UNSTABLE') {
-                    sh "docker run -d -p 5000:5000 ${env.dockeridUser}/flask-app:latest"
+                    sh "docker run -d -p 5000:5000 jharajltp/testflaskappnew"
                     // Add a delay to allow the container to start up completely
                     sleep 30
                 }
             }
         }
 
-              //  stage("Run Application and Tests") {
-        //    parallel {
-         //       stage("Run Application") {
-           //         steps {
-           //             echo "Running the application"
-                        // Execute app.py in background
-             //           bat 'start /b python app.py'
-           //         }
-          //      }
-          //      }
-         //   }
-
-                stage("Run Tests") {
-                    steps {
-                        timeout(time: 30, unit: 'MINUTES') {
-                            echo "Running Selenium tests"
-                            // Run pytest
-                            bat 'pytest selenium1.py'
-                        }
-                    }
+        stage("Selenium Test") {
+            steps {
+                echo "Running Selenium tests"
+               // sh 'python3 app.py'
+               // sh 'python3 -m pytest'
+                  sh 'pytest selenium1.py'
+            }
         }
+    }
+}
