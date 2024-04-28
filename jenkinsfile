@@ -2,10 +2,22 @@ pipeline {
     agent any
 
     stages {
-        stage("Code Checkout") {
+
+          stage("Code Checkout") {
             steps {
                 echo "Cloning the code"
                 git url: "https://github.com/rajraviojha/rajtest.git", branch: "main"
+            }
+        }
+
+      stage("Virtual environment") {
+            steps {
+                echo "Create and activate virtual environment"
+                sh "python3 -m venv myenv"
+                sh"source myenv/bin/activate"                
+                sh "myenv/bin/pip install selenium"
+	     sh "myenv/bin/pip install selenium webdriver_manager"
+
             }
         }
 
@@ -13,7 +25,7 @@ pipeline {
             steps {
                 echo "Building the image"
                 catchError(buildResult: 'UNSTABLE') {
-                    sh "docker build -t testflaskappnew ."
+                    sh "docker build -t flask-app ."
                 }
             }
         }
@@ -22,9 +34,9 @@ pipeline {
             steps {
                 echo "pushing to docker hub"
                 withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
-                    sh "docker tag testflaskappnew ${env.dockerHubUser}/testflaskappnew"
+                    sh "docker tag flask-app ${env.dockerHubUser}/flask-app:latest"
                     sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
-                    sh "docker push ${env.dockerHubUser}/testflaskappnew"
+                    sh "docker push ${env.dockerHubUser}/flask-app:latest"
                 }
             }
         }
@@ -33,7 +45,7 @@ pipeline {
             steps {
                 echo "Deploying to container"
                 catchError(buildResult: 'UNSTABLE') {
-                    sh "docker run -d -p 5000:5000 jharajltp/testflaskappnew"
+                    sh "docker run -d -p 5000:5000 ${env.dockerHubUser}/flask-app:latest"
                     // Add a delay to allow the container to start up completely
                     sleep 30
                 }
@@ -43,9 +55,9 @@ pipeline {
         stage("Selenium Test") {
             steps {
                 echo "Running Selenium tests"
-               // sh 'python3 app.py'
-               // sh 'python3 -m pytest'
-                  sh 'pytest selenium1.py'
+		sh 'python3 lastone.py'
+             //   sh 'python3 app.py'
+            //    sh 'python3 -m pytest'
             }
         }
     }
