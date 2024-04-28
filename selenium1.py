@@ -1,17 +1,19 @@
 import unittest
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
 
-options = webdriver.ChromeOptions()
-options.add_argument("--start-maximized")
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Uncomment this line to run in headless mode
+chrome_options.add_argument("--start-maximized")
 
 class TestFlaskApp(unittest.TestCase):
     def setUp(self):
-        self.driver = webdriver.Chrome(options=options)
+        self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(10)
-        self.driver.get("http://localhost:5000/")
+        self.driver.get("http://52.73.231.195:5000/")
 
     def tearDown(self):
         self.driver.quit()
